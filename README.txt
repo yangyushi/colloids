@@ -68,3 +68,15 @@ Aknowledge please
 Contact
     Mathieu LEOCMACH, Institut Lumière Matière, UMR-CNRS 5306, Lyon, France
     mathieu.leocmach AT polytechnique.org
+
+****************
+*Python Library*
+****************
+
+Colloids only supports python2 now
+
+Use
+
+`pip install -r requirements.txt`
+
+To install the required packages

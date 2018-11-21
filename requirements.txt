@@ -1,0 +1,7 @@
+lxml
+matplotlib
+numba
+numexpr
+numpy
+Pillow
+scipy==0.18.0
