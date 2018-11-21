@@ -45,14 +45,14 @@ endif
 multiscale: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/usr/local/lib -o"multiscale" main.o src/*.o $(USER_OBJS) $(LIBS)
+	g++-8 -L/usr/local/lib -o"multiscale" main.o src/*.o $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	
 tests: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/usr/local/lib -o"tests" test/*.o src/*.o $(USER_OBJS) $(LIBS)
+	g++-8 -L/usr/local/lib -o"tests" test/*.o src/*.o $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	

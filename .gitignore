@@ -1,0 +1,6 @@
+.*
+!.gitignore
+python/colloids/*.pyc
+**__pycache__
+config.log
+autom4te.cache

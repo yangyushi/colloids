@@ -488,8 +488,9 @@ def draw_rods(pos, radii, shape=None, im=None):
     weave.inline(
         code,['pos', 'radii', 'im'],
         type_converters = converters.blitz,
-        extra_compile_args =['-O3 -fopenmp'],
-        extra_link_args=['-lgomp'],
+        #extra_compile_args =['-O3 -fopenmp'],
+        extra_compile_args =['-O3'],
+        #extra_link_args=['-lgomp'],
         verbose=2, compiler='gcc')
     return im;
     
@@ -602,7 +603,7 @@ def global_rescale_weave(sigma0, bonds, dists, R0=None, n=3):
     """
     assert len(bonds)==len(dists) 
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
     v0 = np.zeros([len(sigma0)])
     tr = np.zeros([len(sigma0)])
@@ -625,8 +626,9 @@ def global_rescale_weave(sigma0, bonds, dists, R0=None, n=3):
         code,['bonds', 'dists', 'sigma0', 'R0', 'alpha', 'v0', 'jacob', 'tr'],
         type_converters =converters.blitz,
         support_code = support_functions,
-        extra_compile_args =['-O3 -fopenmp'],
-        extra_link_args=['-lgomp'],
+        #extra_compile_args =['-O3 -fopenmp'],
+        extra_compile_args =['-O3'],
+        #extra_link_args=['-lgomp'],
         verbose=2, compiler='gcc')
     jacob0 = sparse.lil_matrix(tuple([len(sigma0)]*2))
     for (i,j), (a,b) in zip(bonds, jacob):
@@ -656,7 +658,7 @@ def global_rescale_intensity(sigma0, bonds, dists, intensities, R0=None, n=3):
     """
     assert len(bonds)==len(dists) 
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
     v0 = np.zeros([len(sigma0)])
     tr = np.zeros([len(sigma0)])
@@ -685,8 +687,9 @@ def global_rescale_intensity(sigma0, bonds, dists, intensities, R0=None, n=3):
         code,['bonds', 'dists', 'sigma0', 'intensities', 'R0', 'alpha', 'v0', 'jacob', 'tr'],
         type_converters =converters.blitz,
         support_code = support_functions,
-        extra_compile_args =['-O3 -fopenmp'],
-        extra_link_args=['-lgomp'],
+        #extra_compile_args =['-O3 -fopenmp'],
+        extra_compile_args =['-O3'],
+        #extra_link_args=['-lgomp'],
         verbose=2, compiler='gcc')
     jacob0 = sparse.lil_matrix(tuple([len(sigma0)]*2))
     for (i,j), (a,b) in zip(bonds, jacob):
@@ -716,7 +719,7 @@ def solve_intensities(sigma0, bonds, dists, intensities, R0=None, n=3):
     """
     assert len(bonds)==len(dists) 
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
     tr = np.zeros([len(sigma0)])
     ofd = np.zeros([len(bonds),2])
@@ -737,8 +740,9 @@ def solve_intensities(sigma0, bonds, dists, intensities, R0=None, n=3):
         code,['bonds', 'dists', 'sigma0', 'R0', 'alpha', 'ofd', 'tr'],
         type_converters =converters.blitz,
         support_code = support_functions,
-        extra_compile_args =['-O3 -fopenmp'],
-        extra_link_args=['-lgomp'],
+        #extra_compile_args =['-O3 -fopenmp'],
+        extra_compile_args =['-O3'],
+        #extra_link_args=['-lgomp'],
         verbose=2, compiler='gcc')
     mat = sparse.lil_matrix(tuple([len(sigma0)]*2))
     for (i,j), (a,b) in zip(bonds, ofd):
@@ -771,7 +775,7 @@ DoG_dsigma_dR = lambda d, R, sigma, alpha : alpha*G_dsigma_dR(d,R,alpha*sigma) -
 
 def global_rescale(coords, sigma0, R0=None, bonds=None, n=3):
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
         v0 = np.zeros([len(coords)])
     else:
@@ -890,8 +894,9 @@ class CrockerGrierFinder:
             weave.inline(
                 code,['c0', 'centers', 'coefprime', 'coefsec', 'im'],
                 type_converters =converters.blitz,
-                extra_compile_args =['-O3 -fopenmp -mtune=native'],
-                extra_link_args=['-lgomp'],
+                #extra_compile_args =['-O3 -fopenmp -mtune=native'],
+                extra_compile_args =['-O3 -mtune=native'],
+                #extra_link_args=['-lgomp'],
                 verbose=2)
             return centers
         for i, p in enumerate(c0):
@@ -1120,6 +1125,7 @@ class MultiscaleBlobFinder:
     def __init__(self, shape=(256,256), nbLayers=3, nbOctaves=3, dtype=np.float32, Octave0=True):
         """Allocate memory for each octave"""
         shapes = np.vstack([np.ceil([s*2.0**(Octave0-o) for s in shape]) for o in range(nbOctaves)])
+        shapes = shapes.astype(int)
         self.preblurred = np.empty(shapes[0], dtype)
         self.octaves = [
             OctaveBlobFinder(s, nbLayers, dtype)
