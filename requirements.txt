@@ -1,7 +1,8 @@
 lxml
-matplotlib
+matplotlib==2.1.2
 numba
 numexpr
-numpy
+numpy==1.14.5
 Pillow
-scipy==0.18.0
+scipy==0.16.0
+BeautifulSoup4

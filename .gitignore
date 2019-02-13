@@ -4,3 +4,9 @@ python/colloids/*.pyc
 **__pycache__
 config.log
 autom4te.cache
+Makefile
+config.h
+config.status
+libtool
+stamp-h1
+venv
