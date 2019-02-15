@@ -963,6 +963,8 @@ class OctaveBlobFinder:
     def get_iterative_radii(self, k):
         nbLayers = len(self.layersG)-3
         #target blurring radii
+        d1 = np.arange(nbLayers + 3)
+        d2 = np.arange(nbLayers + 3) / float(nbLayers)
         sigmas = k*2**(np.arange(nbLayers+3)/float(nbLayers))
         #corresponding blob sizes and iterative blurring radii
         return np.rint(sigmas*np.sqrt(2)).astype(int), np.sqrt(np.diff(sigmas**2))
@@ -1200,7 +1202,8 @@ class MultiscaleBlobFinder:
                 # remove negative values
                 centers += [self.octaves[1](np.maximum(0, deconv), maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
             else:
-                centers += [self.octaves[1](gaussian_filter(image, k), maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
+                centers += [self.octaves[1](gaussian_filter(image, k), k=k, maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
+                #centers += [self.octaves[1](gaussian_filter(image, k), maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
         # subsample the -3 layerG of the previous octave
         # which is two times more blurred that layer 0
         # and use it as the base of new octave

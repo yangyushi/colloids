@@ -10,7 +10,7 @@ def draw_circles(xs, ys, rs, **kwargs):
 
 im = plt.imread('droplets.jpg')
 finder = track.MultiscaleBlobFinder(im.shape, Octave0=False, nbOctaves=4)
-centers = finder(im, k=1.6)
+centers = finder(im, k=2)
 draw_circles(centers[:, 0], centers[:, 1], centers[:, 2], facecolor='none', edgecolor='g')
 plt.imshow(im, 'hot')
 plt.show()
