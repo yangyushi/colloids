@@ -656,7 +656,7 @@ def global_rescale_intensity(sigma0, bonds, dists, intensities, R0=None, n=3):
     """
     assert len(bonds)==len(dists) 
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
     v0 = np.zeros([len(sigma0)])
     tr = np.zeros([len(sigma0)])
@@ -716,7 +716,7 @@ def solve_intensities(sigma0, bonds, dists, intensities, R0=None, n=3):
     """
     assert len(bonds)==len(dists) 
     alpha = 2**(1.0/n)
-    if R0==None:
+    if isinstance(R0, type(None)):
         R0 = sigma2radius(sigma0, n=float(n))
     tr = np.zeros([len(sigma0)])
     ofd = np.zeros([len(bonds),2])
@@ -1119,7 +1119,7 @@ class MultiscaleBlobFinder:
     """Locator of bright blobs in an image of fixed shape. Works on more than one octave, starting at octave -1."""
     def __init__(self, shape=(256,256), nbLayers=3, nbOctaves=3, dtype=np.float32, Octave0=True):
         """Allocate memory for each octave"""
-        shapes = np.vstack([np.ceil([s*2.0**(Octave0-o) for s in shape]) for o in range(nbOctaves)])
+        shapes = np.vstack([np.ceil([s*2.0**(Octave0-o) for s in shape]) for o in range(nbOctaves)]).astype(int)
         self.preblurred = np.empty(shapes[0], dtype)
         self.octaves = [
             OctaveBlobFinder(s, nbLayers, dtype)
