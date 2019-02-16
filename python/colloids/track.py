@@ -949,7 +949,11 @@ Returns an array of (x, y, intensity)"""
 class OctaveBlobFinder:
     """Locator of bright blobs in an image of fixed shape. Works on a single octave."""
     def __init__(self, shape=(256, 256), nbLayers=3, dtype=np.float32):
-        """Allocate memory once"""
+        """
+        Allocate memory once
+        nbLayers: effective layer of dog to locate particle
+        actural layer number: Gaussian: nbLayers+3, DOG: nbLayers+2
+        """
         self.layersG = np.empty([nbLayers+3]+list(shape), dtype)
         self.layers = np.empty([nbLayers+2]+list(shape), dtype)
         self.eroded = np.empty_like(self.layers)
@@ -961,14 +965,15 @@ class OctaveBlobFinder:
         self.sizes = np.empty(nbLayers)
 
     def get_iterative_radii(self, k):
-        nbLayers = len(self.layersG)-3
-        #target blurring radii
-        d1 = np.arange(nbLayers + 3)
-        d2 = np.arange(nbLayers + 3) / float(nbLayers)
-        sigmas = k*2**(np.arange(nbLayers+3)/float(nbLayers))
-        #corresponding blob sizes and iterative blurring radii
+        dim = self.layers[0].ndim
+        nbLayers = len(self.layersG) - 1  # the first layer is the origional graph
+        sigmas = k * 2 ** (np.arange(nbLayers + 1)/float(nbLayers - 1))
+        # corresponding blob sizes and iterative blurring radii
         return np.rint(sigmas*np.sqrt(2)).astype(int), np.sqrt(np.diff(sigmas**2))
-        
+        #alpha = 2 ** (1.0 / float(nbLayers))
+        #sizes = np.sqrt(2 * dim * alpha / (1 - alpha ** -2)) * sigmas
+        #return np.rint(sizes).astype(int), np.sqrt(np.diff(sigmas**2))
+
     def fill(self, image, k=1.6):
         """All the image processing when accepting a new image."""
         t0 = time.clock()
@@ -1069,7 +1074,7 @@ class OctaveBlobFinder:
     def subpix(self, method=1):
         """Extract and refine to subpixel resolution the positions and size of the blobs"""
         nb_centers = self.binary.sum()
-        if nb_centers==0 or self.binary.min():
+        if nb_centers == 0 or self.binary.min():
             return np.zeros([0, self.layers.ndim+1])
         centers = np.empty([nb_centers, self.layers.ndim+1])
         #original positions of the centers
@@ -1104,36 +1109,37 @@ class OctaveBlobFinder:
                 centers[i,0] = ngb[tuple([1]*ngb.ndim)]+0.5*np.dot(dx,grad)
         else:
             for i, p in enumerate(c0):
-                #neighbourhood, three pixels in the scale axis,
-                #but according to scale in space
+                # neighbourhood, three pixels in the scale axis,
+                # but according to scale in space
                 r = self.sizes[p[0]]
-                rv = [1]+[r]*(self.layers.ndim-1)
+                rv = [1] + [r] * (self.layers.ndim-1)
                 ngb = np.copy(self.layers[tuple(
-                    [slice(p[0]-1,p[0]+2)]+[
+                    [slice(p[0]-1, p[0]+2)]+[
                         slice(u-r, u+r+1) for u in p[1:]
                         ]
                     )])
-                #label only the negative pixels
-                labels = measurements.label(ngb<0)[0]
+                # label only the negative pixels
+                labels = measurements.label(ngb < 0)[0]
                 lab = labels[tuple(rv)]
-                #value
+                # value
                 centers[i,0] = measurements.mean(ngb, labels, [lab])
-                #pedestal removal
+                # pedestal removal
                 ped = measurements.maximum(ngb, labels, [lab])
-                if ped!=self.layers[tuple(p.tolist())]: #except if only one pixel or uniform value
+                if ped != self.layers[tuple(p.tolist())]: # except if only one pixel or uniform value
                     ngb -= ped
-                #center of mass
+                # center of mass
                 centers[i,1:] = (np.asanyarray(measurements.center_of_mass(
                     ngb, labels, [lab]
                     ))-rv)+p
-                #the subscale resolution is calculated using only 3 pixels
+                # the subscale resolution is calculated using only 3 pixels
                 n = ngb[tuple(
                     [slice(None)]+[r]*(self.layers.ndim-1)
                     )].ravel()
                 denom = (n[2] - 2 * n[1] + n[0])
                 if (abs(denom)+1.0)**2 > 1.0:
-                    centers[i,1] = p[0] - (n[2] - n[0]) / 2.0 / denom
-                else: centers[i,1] = p[0]
+                    centers[i, 1] = p[0] - (n[2] - n[0]) / 2.0 / denom
+                else:
+                    centers[i, 1] = p[0]
         return centers
         
     def __call__(self, image, k=1.6, maxedge=-1, first_layer=False, maxDoG=None):
@@ -1200,7 +1206,7 @@ class MultiscaleBlobFinder:
                 # To avoid noise amplification, the blurred image is deconvolved, not the raw one
                 deconv = deconvolve(gaussian_filter(image.astype(float), k), deconvKernel)
                 # remove negative values
-                centers += [self.octaves[1](np.maximum(0, deconv), maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
+                centers += [self.octaves[1](np.maximum(0, deconv), k=k, maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
             else:
                 centers += [self.octaves[1](gaussian_filter(image, k), k=k, maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
                 #centers += [self.octaves[1](gaussian_filter(image, k), maxedge=maxedge, first_layer=first_layer, maxDoG=maxDoG)]
@@ -1209,7 +1215,7 @@ class MultiscaleBlobFinder:
         # and use it as the base of new octave
         for o, oc in enumerate(self.octaves[2:]):
             centers += [oc(
-                self.octaves[o+1].layersG[-3][
+                self.octaves[o+1].layersG[-2][
                     tuple([slice(None, None, 2)] * image.ndim)],
                 k, maxedge, maxDoG=maxDoG
                 )]
