@@ -966,8 +966,8 @@ class OctaveBlobFinder:
 
     def get_iterative_radii(self, k):
         dim = self.layers[0].ndim
-        nbLayers = len(self.layersG) - 1  # the first layer is the origional graph
-        sigmas = k * 2 ** (np.arange(nbLayers + 1)/float(nbLayers - 1))
+        nbLayers = len(self.layersG) - 3  # the first layer is the origional graph
+        sigmas = k * 2 ** (np.arange(nbLayers + 3)/float(nbLayers))
         # corresponding blob sizes and iterative blurring radii
         return np.rint(sigmas*np.sqrt(2)).astype(int), np.sqrt(np.diff(sigmas**2))
         #alpha = 2 ** (1.0 / float(nbLayers))
@@ -1215,7 +1215,7 @@ class MultiscaleBlobFinder:
         # and use it as the base of new octave
         for o, oc in enumerate(self.octaves[2:]):
             centers += [oc(
-                self.octaves[o+1].layersG[-2][
+                self.octaves[o+1].layersG[-3][
                     tuple([slice(None, None, 2)] * image.ndim)],
                 k, maxedge, maxDoG=maxDoG
                 )]
