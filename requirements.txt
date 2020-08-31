@@ -1,5 +1,6 @@
 lxml
 matplotlib==2.1.2
+llvmlite==0.31.0
 numba
 numexpr
 numpy==1.14.5
